@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Career Roadmap Generator | Pro Edition</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" type="image/png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        .step-text {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        /* Popup Styles */
+        
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent black */
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .popup-form {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            shadow-lg;
+            position: relative;
+            width: 400px;
+            max-width: 90%;
+        }
+        
+        .popup-form h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #4f46e5;
+            text-align: center;
+        }
+        
+        .popup-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .popup-form input[type="text"],
+        .popup-form input[type="password"],
+        .popup-form input[type="date"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            focus: ring-2 focus: ring-indigo-500 focus: border-indigo-500;
+            box-sizing: border-box;
+        }
+        
+        .popup-form button[type="submit"] {
+            width: 100%;
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            &:hover {
+                background-color: #4338ca;
+            }
+        }
+        
+        .popup-form .close-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            transition: color 0.2s ease;
+            &:hover {
+                color: #374151;
+            }
+        }
+        
+        .popup-form .form-navigation {
+            margin-top: 1rem;
+            text-align: center;
+            color: #4b5563;
+        }
+        
+        .popup-form .form-navigation a {
+            color: #007bff;
+            text-decoration: none;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+        
+        #logoutBtn {
+            display: none;
+            /* Initially hidden */
+            background-color: #dc2626;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            /* rounded-md */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 0.5rem;
+            /* Add some left margin */
+            &:hover {
+                background-color: #b81c1c;
+            }
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 3rem;
+            margin-left: 1rem;
+            /* Space for the timeline line and dot */
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #d1d5db;
+            /* Vertical line */
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .timeline-item-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: #4f46e5;
+            /* Dot color */
+            margin-right: 1rem;
+            /* Space between dot and content */
+            z-index: 1;
+        }
+        
+        .timeline-date {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-right: 1rem;
+        }
+        
+        .step-deadline {
+            font-size: 0.75rem;
+            color: #e53e3e;
+            /* Red color for deadline */
+            margin-top: 0.25rem;
+            font-weight: medium;
+        }
+        
+        .youtube-link {
+            color: #007bff;
+            text-decoration: none;
+            margin-top: 0.5rem;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-b from-indigo-100 to-white min-h-screen p-6 flex flex-col items-center">
+    <div class="max-w-3xl w-full">
+        <h1 class="text-5xl font-bold mb-8 text-center text-indigo-700 animate-fade-in">🚀 Career Roadmap Generator</h1>
+
+        <div class="bg-white p-8 rounded-3xl shadow-2xl mb-10 space-y-6 animate-fade-in">
+            <div class="flex justify-end mb-4">
+                <button id="loginBtn" class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 mr-2">Login</button>
+                <button id="signupBtn" class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400">Sign
+                    Up</button>
+                <button id="logoutBtn" class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400">Logout</button>
+            </div>
+
+            <input id="careerInput" type="text" placeholder="Enter your career goal" class="w-full p-4 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+
+            <select id="experienceInput" class="w-full p-4 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="">Select your experience level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+            </select>
+
+            <select id="languageInput" class="w-full p-4 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="">Select your preferred programming language</option>
+                <option value="Python">Python</option>
+                <option value="C++">C++</option>
+                <option value="Java">Java</option>
+                <option value="other">other</option>
+            </select>
+
+            <label for="startDateInput" class="block text-sm font-semibold text-gray-700">Start Date:</label>
+            <input id="startDateInput" type="date" class="w-full p-4 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+
+            <label for="endDateInput" class="block text-sm font-semibold text-gray-700">Target End Date:</label>
+            <input id="endDateInput" type="date" class="w-full p-4 border-2 border-indigo-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+
+
+            <button onclick="generateRoadmap()" class="w-full bg-indigo-600 text-white py-4 rounded-lg hover:bg-indigo-700 transition transform hover:scale-105 shadow-lg">✨
+                Generate Roadmap</button>
+            <button onclick="downloadPDF()" class="w-full mt-3 bg-green-600 text-white py-4 rounded-lg hover:bg-green-700 transition transform hover:scale-105 shadow-lg">📥
+                Download as PDF</button>
+        </div>
+
+        <div id="progressContainer" class="hidden mb-6">
+            <div class="w-full bg-gray-300 rounded-full h-4 overflow-hidden">
+                <div id="progressBar" class="h-4 bg-indigo-600 transition-all duration-500" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="roadmapContainer" class="space-y-6 relative z-10 animate-fade-in"></div>
+    </div>
+
+    <div id="loginPopup" class="popup-overlay">
+        <div class="popup-form">
+            <button class="close-button" onclick="closeLoginPopup()">×</button>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <label for="loginUsername">Username:</label>
+                <input type="text" id="loginUsername" name="username" required>
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" name="password" required>
+                <button type="submit">Log In</button>
+            </form>
+            <div class="form-navigation">
+                Don't have an account? <a href="#" onclick="showSignupPopup(); closeLoginPopup();">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="signupPopup" class="popup-overlay">
+        <div class="popup-form">
+            <button class="close-button" onclick="closeSignupPopup()">×</button>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <label for="signupUsername">Username:</label>
+                <input type="text" id="signupUsername" name="username" required>
+                <label for="signupPassword">Password:</label>
+                <input type="password" id="signupPassword" name="password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <div class="form-navigation">
+                Already have an account? <a href="#" onclick="showLoginPopup(); closeSignupPopup();">Log In</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingSpinner" class="hidden fixed inset-0 flex items-center justify-center bg-white bg-opacity-70 z-50">
+        <div class="animate-spin rounded-full h-24 w-24 border-t-4 border-indigo-500 border-solid"></div>
+    </div>
+
+    <script>
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const logoutBtn = document.getElementById('logoutBtn'); // Get the logout button
+        const loginPopup = document.getElementById('loginPopup');
+        const signupPopup = document.getElementById('signupPopup');
+        const signupForm = document.getElementById('signupForm');
+        const loginForm = document.getElementById('loginForm');
+
+        loginBtn.addEventListener('click', showLoginPopup);
+        signupBtn.addEventListener('click', showSignupPopup);
+        logoutBtn.addEventListener('click', handleLogout); // Add event listener to logout button
+
+        function showLoginPopup() {
+            loginPopup.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLoginPopup() {
+            loginPopup.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        function showSignupPopup() {
+            signupPopup.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSignupPopup() {
+            signupPopup.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('signupUsername').value;
+            const password = document.getElementById('signupPassword').value;
+
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
+            }
+
+            if (localStorage.getItem(username)) {
+                alert('Username already exists. Please choose a different username.');
+                return;
+            }
+
+            localStorage.setItem(username, password);
+            alert(User "${username}" signed up!);
+            signupForm.reset();
+            closeSignupPopup();
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const storedPassword = localStorage.getItem(username);
+
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
+            }
+
+            if (!storedPassword) {
+                alert('User not found. Please sign up.');
+                return;
+            }
+
+            if (storedPassword !== password) {
+                alert('Wrong password. Please try again.');
+                return;
+            }
+
+            alert(Login successful for user "${username}"!);
+            closeLoginPopup();
+            // Show logout and hide login/signup on successful login
+            loginBtn.style.display = 'none';
+            signupBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-flex';
+            localStorage.setItem('loggedIn', 'true'); //set loggedIn to true
+        });
+
+        function handleLogout() {
+            // Perform logout actions (e.g., clear session, remove auth token)
+            localStorage.removeItem('loggedIn');
+            alert('Logged out!');
+            // Show login/signup and hide logout on logout
+            loginBtn.style.display = 'inline-flex';
+            signupBtn.style.display = 'inline-flex';
+            logoutBtn.style.display = 'none';
+        }
+
+        //check on load if user is logged in
+        if (localStorage.getItem('loggedIn') === 'true') {
+            loginBtn.style.display = 'none';
+            signupBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-flex';
+        }
+
+
+        async function generateRoadmap() {
+            const careerGoal = document.getElementById("careerInput").value.trim();
+            const experienceLevel = document.getElementById("experienceInput").value;
+            const preferredLanguage = document.getElementById("languageInput").value;
+            const startDateInput = document.getElementById("startDateInput").value;
+            const endDateInput = document.getElementById("endDateInput").value; // Get the end date
+
+            if (!careerGoal || !experienceLevel || !preferredLanguage || !startDateInput || !endDateInput) {
+                alert("Please fill out all fields, including the start and target end dates!");
+                return;
+            }
+
+            const startDate = new Date(startDateInput);
+            const endDate = new Date(endDateInput);
+
+            if (endDate <= startDate) {
+                alert("Target End Date must be after the Start Date!");
+                return;
+            }
+
+            document.getElementById("roadmapContainer").innerHTML = "";
+            document.getElementById("progressContainer").classList.remove("hidden");
+            document.getElementById("progressBar").style.width = "0%";
+            document.getElementById("loadingSpinner").classList.remove("hidden");
+
+            try {
+                const response = await fetch("/generate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        role: careerGoal,
+                        experience: experienceLevel,
+                        language: preferredLanguage
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(Server error: ${response.status});
+                }
+
+                const data = await response.json();
+                displayRoadmap(data.roadmap, startDate, endDate); // Pass both start and end dates
+            } catch (error) {
+                alert("Error generating roadmap: " + error.message);
+                console.error(error);
+            } finally {
+                document.getElementById("loadingSpinner").classList.add("hidden");
+            }
+        }
+
+        function displayRoadmap(text, startDate, endDate) {
+            const container = document.getElementById("roadmapContainer");
+            container.innerHTML = "";
+            const stepRegex = /\\*Step\s\d+:.?(?=(\*\*Step\s\d+:|$))/gs;
+            const steps = [...text.matchAll(stepRegex)];
+
+            if (steps.length === 0) {
+                container.innerHTML = "<p class='text-red-500'>Sorry, no steps found! Please try again with a different career goal.</p>";
+                return;
+            }
+
+            let totalSteps = steps.length;
+            let completedSteps = 0;
+            document.getElementById("progressContainer").classList.remove("hidden");
+
+            const timelineDiv = document.createElement("div");
+            timelineDiv.className = "timeline";
+
+            const timelineHeader = document.createElement("div");
+            timelineHeader.className = "bg-white p-4 rounded-2xl shadow-md mb-6 animate-fade-in border border-indigo-200";
+            timelineHeader.innerHTML = `<h3 class="text-lg font-semibold text-indigo-700 mb-2">Estimated Timeline</h3>
+                                    <p class="text-gray-600 text-sm">Start Date: ${startDate.toLocaleDateString()}</p>
+                                    <p class="text-gray-600 text-sm">Target End Date: ${endDate.toLocaleDateString()}</p>`;
+            timelineDiv.appendChild(timelineHeader);
+            container.appendChild(timelineDiv);
+
+            const timeDifference = endDate.getTime() - startDate.getTime();
+            const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+            const daysPerStep = totalSteps > 0 ? Math.floor(daysDifference / totalSteps) : 0;
+            let currentStepDate = new Date(startDate);
+
+            steps.forEach(async(match, index) => { // Make the loop async to handle await
+                let step = match[0].trim().replace(/\\/g, '').trim();
+                if (!step) return;
+
+                const card = document.createElement("div");
+                card.className = "bg-white p-6 rounded-2xl shadow-xl flex items-start gap-6 animate-fade-in border border-indigo-200 mb-6 timeline-item";
+
+                const badge = document.createElement("div");
+                badge.className = "flex items-center justify-center w-10 h-10 rounded-full bg-indigo-600 text-white font-bold text-lg timeline-dot";
+                badge.innerText = index + 1;
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.className = "mt-1 w-6 h-6 text-indigo-500 rounded focus:ring-indigo-400 focus:ring-2";
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        completedSteps++;
+                        card.classList.remove('bg-white');
+                        card.classList.add('bg-green-100');
+                    } else {
+                        completedSteps--;
+                        card.classList.remove('bg-green-100');
+                        card.classList.add('bg-white');
+                    }
+                    updateProgress(completedSteps, totalSteps);
+                });
+
+                const textDiv = document.createElement("div");
+                textDiv.innerHTML = step;
+                textDiv.className = "text-gray-800 leading-relaxed step-text";
+
+                const leftPart = document.createElement("div");
+                leftPart.className = "flex flex-col items-center gap-3";
+                leftPart.appendChild(badge);
+                leftPart.appendChild(checkbox);
+
+                const rightPart = document.createElement("div");
+                rightPart.className = "flex-1";
+                rightPart.appendChild(textDiv);
+
+                // Calculate deadline for each step based on start and end dates
+                currentStepDate = new Date(startDate.getTime() + index * daysPerStep * (1000 * 3600 * 24));
+                const deadlineDiv = document.createElement("div");
+                deadlineDiv.className = "step-deadline";
+                deadlineDiv.innerText = Deadline: ${currentStepDate.toLocaleDateString()};
+                rightPart.appendChild(deadlineDiv);
+
+                // Add YouTube link
+                const youtubeLink = document.createElement("a");
+                youtubeLink.href = await getYouTubeLink(step); // Await the result of the function
+                youtubeLink.textContent = "Watch on YouTube";
+                youtubeLink.className = "youtube-link";
+                youtubeLink.target = "_blank"; // Open in new tab
+                rightPart.appendChild(youtubeLink);
+
+                card.appendChild(leftPart);
+                card.appendChild(rightPart);
+                timelineDiv.appendChild(card); // Append to timeline div
+            });
+
+            document.getElementById("progressBar").style.width = "100%";
+        }
+
+        function updateProgress(completed, total) {
+            const percent = (completed / total) * 100;
+            document.getElementById("progressBar").style.width = percent + "%";
+        }
+
+        function downloadPDF() {
+            const roadmapContainer = document.getElementById("roadmapContainer");
+            if (!roadmapContainer.innerHTML.trim()) {
+                alert("No roadmap generated to download!");
+                return;
+            }
+
+            const opt = {
+                margin: 0.5,
+                filename: 'career_roadmap.pdf',
+                image: {
+                    type: 'jpeg',
+                    quality: 0.98
+                },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: 'letter',
+                    orientation: 'portrait'
+                }
+            };
+
+            // Use a promise to handle the async nature of html2canvas
+            html2pdf().from(roadmapContainer).set(opt).toPdf().get('pdf').then(function(pdfObj) {
+                if (pdfObj && pdfObj.internal && pdfObj.internal.pages.length > 0) {
+                    pdfObj.save();
+                } else {
+                    console.error("PDF object is empty or invalid.");
+                    alert("Failed to generate PDF.  Please check the console for errors.");
+                }
+            }).catch(function(error) {
+                console.error("Error generating PDF:", error);
+                alert("Error generating PDF.  Please check the console for errors.");
+            });
+        }
+
+        async function getYouTubeLink(step) {
+            // Placeholder: Replace with actual web scraping logic
+            // In a real application, you would use a server-side language (Node.js, Python)
+            // to perform the scraping and return the result to the client.  This is because
+            // JavaScript running in the browser has security restrictions that prevent scraping.
+
+            // WARNING:  Web scraping can be complex and may violate a website's terms of service.
+            //  Always check the website's robots.txt file and terms of service before scraping.
+            //  This is a simplified example and may not work reliably.
+
+            // Simulate a delay and a simple search (replace with actual scraping logic)
+            await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+            const searchTerm = encodeURIComponent(step + " tutorial");
+            //const searchUrl = https://www.youtube.com/results?search_query=${searchTerm};
+
+            //  Instead of directly fetching, which is problematic due to CORS and complexity,
+            //  we'll return a search URL.  The user can then click and see results.
+            return https://www.youtube.com/results?search_query=${searchTerm};
+        }
+    </script>
+</body>
+
+</html>
